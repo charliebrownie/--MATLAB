@@ -1,0 +1,159 @@
+try
+
+    Mword=12;
+    Mverb=12;
+    
+    Mlist=Mword*Mverb;
+    
+    allFonts=FontInfo('Fonts');
+    foundfont=0;
+    for idx=1:length(allFonts)
+        if strcmpi(allFonts(idx).name,'Hiragino Kaku Gothic Pro')
+            foundfont=1;
+            break;
+        end
+    end
+    
+screens=Screen('Screens');
+    whichscreen=max(screens);
+    [myscreen,rect]=Screen('OpenWindow',whichscreen);
+    priorityLevel=MaxPriority(window);
+    Priority(priorityLevel);
+    HideCursor; 
+    
+    japanesetext=double('スペースバーを押してください');
+    Screen('TextSize',myscreen,50);
+    DrawFormattedText(myscreen,japanesetext,'center','center');
+    Screen('Flip',myscreen);
+    KbWait;
+    space=KbName('space');
+
+ntrials=[Mlist,4];
+frame=[Mverb,Mword];
+
+Word1=double('びりびり');
+Word2=double('きりきり');
+Word3=double('くねくね');
+Word4=double('ゆらゆら');
+Word5=double('とんとん');
+Word6=double('ちくちく');
+Word7=double('うっかり');
+Word8=double('すばやく');
+Word9=double('ゆっくり');
+Word10=double('しばらく');
+Word11=double('しずかに');
+Word12=double('ななめに');
+Verb1=double('動く ');
+Verb2=double('歩く ');
+Verb3=double('走る ');
+Verb4=double('痛む ');
+Verb5=double('破る ');
+Verb6=double('叩く ');
+Verb7=double('光る ');
+Verb8=double('黙る ');
+Verb9=double('浮かぶ');
+Verb10=double('落ちる');
+Verb11=double('巡る ');
+Verb12=double('香る ');
+Answer=[0 0 0 0 1 0 0 0 0 0 0 0;...
+    0 0 0 1 0 0 0 0 0 0 0 0;...
+    1 1 1 0 0 0 0 0 0 1 0 0;...
+    1 1 0 0 0 0 0 0 1 1 1 1;...
+    0 0 0 0 0 1 0 0 0 0 0 0;...
+    0 0 0 1 0 0 0 0 0 0 0 0;...
+    1 1 1 0 1 1 0 0 0 1 0 0;...
+    1 1 1 0 1 1 1 1 1 1 1 0;...
+    1 1 1 0 1 1 1 0 1 1 1 1;...
+    1 1 1 1 0 1 1 1 1 1 1 1;...
+    1 1 1 0 1 1 1 0 1 1 1 1;...
+    1 1 1 0 0 1 1 0 0 1 0 0];
+frame1=[1100 1110 1110 3000 1320 4000 2431 1242 1100 1150 1113 5500];
+frame2=[1160 3000 1110 1110 1600 3000 2474 2480 2480 2690 2435 1150];
+
+for n1=1:Mverb
+    for n2=1:Mword
+        a1=frame1(n1)-rem(frame1(n1),1000);
+        a2=frame2(n2)-rem(frame2(n2),1000);
+        if frame1(n1)==frame2(n2)
+            frame(n1,n2)=0;
+        elseif a1==a2
+            frame(n1,n2)=1;
+        else 
+            frame(n1,n2)=2;
+        end
+    end
+end
+             
+list1=[Word1;Word2;Word3;Word4;Word5;Word6;Word7;Word8;Word9;Word10;Word11;Word12];
+list2=[Verb1;Verb2;Verb3;Verb4;Verb5;Verb6;Verb7;Verb8;Verb9;Verb10;Verb11;Verb12];
+
+p=randperm(Mlist);
+
+for n=1:Mlist
+    if rem(p(n),Mverb) ==0
+        amari=Mverb;
+    else
+        amari=rem(p(n),Mverb); %list 1
+    end
+    
+    shou=((p(n)-amari)/Mverb)+1;
+    DrawFormattedText(myscreen,list1(amari,:),'center','center');
+    Screen('Flip',myscreen);
+        
+    WaitSecs(1);    
+    
+    DrawFormattedText(myscreen,list2(shou,:),'center','center');
+    Screen('Flip',myscreen);
+    
+    t0=GetSecs;
+        
+    while 1        
+        
+        [keyIsDown,wtime,keycode]=KbCheck;
+        if keycode(KbName('y'))
+            pbounce=1;
+            break;
+        elseif keycode(KbName('n'))
+            pbounce=0;
+            break;
+        end
+        ntrials(p(n),2)=wtime-t0;
+    end 
+    
+    japanesetext=double('スペースバーを押してください');
+    Screen('TextSize',myscreen,50);
+    DrawFormattedText(myscreen,japanesetext,'center','center');
+    Screen('Flip',myscreen);
+    
+    while 1
+        wtime=KbWait();
+        [keyIsDown,ctime,keycodes]=KbCheck;
+        if keycodes(KbName('space'))
+            break;
+        end
+    end
+    
+    if pbounce==Answer(shou,amari)
+        ntrials(p(n),1)=1;
+    else
+        ntrials(p(n),1)=0;
+    end 
+    
+    ntrials(p(n),3)=frame(shou,amari);
+    ntrials(p(n),4)=Answer(shou,amari);
+end
+
+    fprintf(1,'%f',ntrials);
+%b=b.*1000; %秒からミリ秒に変換
+    Priority(0);
+    Screen('CloseAll');
+    ShowCursor;
+
+catch
+    Screen('CloseAll')
+    rethrow(lasterror)
+
+end
+
+
+
